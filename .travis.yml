@@ -1,64 +1,78 @@
 ---
-dist: xenial
+dist: trusty
 language: ruby
 cache: bundler
 before_install:
-  - gem update --system
-  - gem update bundler
-  - bundle --version
+  - bundle -v
+  - rm -f Gemfile.lock
+  - gem update --system $RUBYGEMS_VERSION
+  - gem --version
+  - bundle -v
 script:
   - 'bundle exec rake $CHECK'
+bundler_args: --without system_tests
+rvm:
+  - 2.5.3
+stages:
+  - static
+  - spec
+  - acceptance
+  -
+    if: tag =~ ^v\d
+    name: deploy
 matrix:
   fast_finish: true
   include:
-  - rvm: 2.4.4
-    bundler_args: --without system_tests development release
-    env: PUPPET_VERSION="~> 5.0" CHECK=test PARALLEL_TEST_PROCESSORS=12
-  - rvm: 2.5.3
-    bundler_args: --without system_tests development release
-    env: PUPPET_VERSION="~> 6.0" CHECK=test_with_coveralls
-  - rvm: 2.5.3
-    bundler_args: --without system_tests development release
-    env: PUPPET_VERSION="~> 6.0" CHECK=rubocop
-  - rvm: 2.5.3
-    bundler_args: --without system_tests development release
-    env: PUPPET_VERSION="~> 6.0" CHECK=build DEPLOY_TO_FORGE=yes
-  - rvm: 2.3
-    bundler_args: --without development
-    env: BEAKER_set=docker/ubuntu-14.04 CHECK=beaker
-    services: docker
-    sudo: required
-  - rvm: 2.3
-    bundler_args: --without development
-    env: BEAKER_set=docker/ubuntu-16.04 CHECK=beaker
-    services: docker
-    sudo: required
-  - rvm: 2.3
-    bundler_args: --without development
-    env: BEAKER_set=docker/centos-6 CHECK=beaker
-    services: docker
-    sudo: required
-  - rvm: 2.3
-    bundler_args: --without development
-    env: BEAKER_set=docker/centos-7 CHECK=beaker
-    services: docker
-    sudo: required
-  - rvm: 2.3
-    bundler_args: --without development
-    env: BEAKER_set=docker/debian-8 CHECK=beaker
-    services: docker
-    sudo: required
+    -
+      env: CHECK="check:symlinks check:git_ignore check:dot_underscore check:test_file rubocop syntax lint metadata_lint"
+      stage: static
+    -
+      env: PUPPET_GEM_VERSION="~> 5.0" CHECK=parallel_spec
+      rvm: 2.4.5
+      stage: spec
+    -
+      env: PUPPET_GEM_VERSION="~> 6.0" CHECK=parallel_spec
+      rvm: 2.5.3
+      stage: spec
+    -
+      env: DEPLOY_TO_FORGE=yes
+      stage: deploy
+    -
+      bundler_args: --without development
+      env: BEAKER_set=docker/ubuntu-14.04 CHECK=beaker
+      rvm: 2.3
+      services: docker
+      sudo: required
+    -
+      bundler_args: --without development
+      env: BEAKER_set=docker/ubuntu-16.04 CHECK=beaker
+      rvm: 2.3
+      services: docker
+      sudo: required
+    -
+      bundler_args: --without development
+      env: BEAKER_set=docker/centos-6 CHECK=beaker
+      rvm: 2.3
+      services: docker
+      sudo: required
+    -
+      bundler_args: --without development
+      env: BEAKER_set=docker/centos-7 CHECK=beaker
+      rvm: 2.3
+      services: docker
+      sudo: required
+    -
+      bundler_args: --without development
+      env: BEAKER_set=docker/debian-8 CHECK=beaker
+      rvm: 2.3
+      services: docker
+      sudo: required
 branches:
   only:
-  - master
-  - /^v\d/
+    - master
+    - /^v\d/
 notifications:
   email: false
-  irc:
-    on_success: false
-    on_failure: false
-    channels:
-      - "chat.freenode.org#voxpupuli-notifications"
 deploy:
   provider: puppetforge
   user: puppet
@@ -66,7 +80,5 @@ deploy:
     secure: ""
   on:
     tags: true
-    # all_branches is required to use tags
     all_branches: true
-    # Only publish the build marked with "DEPLOY_TO_FORGE"
     condition: "$DEPLOY_TO_FORGE = yes"

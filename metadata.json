@@ -7,6 +7,16 @@
   "source": "git://github.com/xaque208/puppet-unbound.git",
   "project_page": "https://github.com/xaque208/puppet-unbound",
   "issues_url": "https://github.com/xaque208/puppet-unbound/issues",
+  "dependencies": [
+    {
+      "name": "puppetlabs/concat",
+      "version_requirement": ">=1.2.1"
+    },
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">=4.13.0"
+    }
+  ],
   "operatingsystem_support": [
     {
       "operatingsystem": "RedHat",
@@ -98,14 +108,7 @@
     }
   ],
   "description": "A module to deploy and manage the Unbound caching resolver",
-  "dependencies": [
-    {
-      "name": "puppetlabs/concat",
-      "version_requirement": ">=1.2.1"
-    },
-    {
-      "name": "puppetlabs/stdlib",
-      "version_requirement": ">=4.13.0"
-    }
-  ]
+  "pdk-version": "1.10.0",
+  "template-url": "file:///opt/puppetlabs/pdk/share/cache/pdk-templates.git#1.10.0",
+  "template-ref": "1.10.0-0-gbba9ac3"
 }
